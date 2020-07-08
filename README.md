@@ -3,9 +3,9 @@
 ## Overview
 
 
-This project was initially developed during a College Course on Computer vision from UFSC (Santa Catarina Federal University).  In this couse, we used MATLAB image processing features. 
+This project was initially developed during a College Course on Computer vision from UFSC (Santa Catarina Federal University).  In this couse, MATLAB was used for image processing features. 
 
-The obtained performance using MATLAB was not optimal. So, in this project we tried to achieve better results by using OpenCV module in Python.  
+The obtained performance using MATLAB was not optimal. So, in this project I tried to achieve better results by using OpenCV module in Python.  
 
 The results using OpenCV library were far better than the ones from the College Course. This shows that python is more recommended for Image Processing tasks than MATLAB.
 
@@ -24,7 +24,7 @@ The objectives are described in the list below:
 
 - Apply Template Match function (from OpenCV module) to categorize the input card into the correct number/name and suit. 
 
-- Implement the detection code for Videos in Webcam video stream (to do).
+- Implement the detection code for Videos in WebCam video stream (to do).
 
 ## Procedures
 
