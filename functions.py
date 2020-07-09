@@ -76,11 +76,8 @@ def calcule_template_match(im, templates):
     index = matched_elem['index'].values[0]
 
     bottom_right = (max_loc[0] + width, max_loc[1] + height)
-    R = random.randint(0, 255)
-    G = random.randint(0, 255)
-    B = random.randint(0, 255)
 
-    cv2.rectangle(im, max_loc, bottom_right, (B, G, R), 1)
+    cv2.rectangle(im, max_loc, bottom_right, (255, 0, 0), 1)
 
     return im, index
 

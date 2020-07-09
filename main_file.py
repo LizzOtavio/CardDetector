@@ -1,7 +1,6 @@
 import cv2
 import os
 import numpy as np
-import urllib.request
 import functions as func
 
 templates_path = os.getcwd() + '\\Templates\\'
