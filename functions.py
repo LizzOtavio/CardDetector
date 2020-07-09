@@ -98,12 +98,11 @@ def describe_cards(input_img, all_cards, all_templates):
     erosion = cv2.erode(dilation, kernel, iterations=1)
     contours, hierarchy = cv2.findContours(erosion, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     # image is dilated then eroded to avoid double countour
-    cards = []
+
     for i in range(0, len(contours)):
         cnt = contours[i]
         area = cv2.contourArea(cnt)
         if area > 5000: # Filter for 
-            cv2.drawContours(input_img, [cnt], 0, (0, 255, 0), 2)
             epsilon = 0.1 * cv2.arcLength(cnt, True)
             approx = cv2.approxPolyDP(cnt, epsilon, True)
             try:
@@ -116,6 +115,7 @@ def describe_cards(input_img, all_cards, all_templates):
                 x4 = approx[3][0][0]
                 y4 = approx[3][0][1]
                 # correct pts order -> top-Left (1) - bottom-Left (2) - bottom-right (3) - top-right (4)
+
                 # euclidean distance - Verifies Card Orientation
                 dist1 = np.linalg.norm(np.array([x1, y1])-np.array([x2, y2]))
                 dist2 = np.linalg.norm(np.array([x1, y1])-np.array([x4, y4]))
@@ -125,19 +125,21 @@ def describe_cards(input_img, all_cards, all_templates):
                 else:  # Card is in horizontal -- must rotate before template matching
                     pts_src = np.array(
                         [[x2, y2], [x3, y3], [x4, y4], [x1, y1]]).reshape((4, 2))
+
                 h, status = cv2.findHomography(
                     pts_src, pts_dst)  # correct image perspective
                 img = cv2.warpPerspective(
                     input_img, h, (def_width, def_height))
+
                 img, name, suit = match_templates_to_card(img, all_templates)
-                ptx = min([x1, x2, x3, x4])
-                # get bottom left corner position to insert result
-                pty = max([y1, y2, y3, y4])
-                cv2.putText(img, '{} of {}'.format(name, suit), (0, 270,),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 1)
-                cv2.putText(input_img, '{} of {}'.format(
-                    name, suit), (ptx, pty), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 2)
-                cards.append(img)
+                cv2.drawContours(input_img, [cnt], 0, (0, 255, 0), 2)
+
+                ptx = min([x1, x2, x3, x4])   # get bottom left corner position to insert result
+                pty = max([y1, y2, y3, y4])-10
+                text = '{} of {}'.format(name, suit)
+                font = cv2.FONT_HERSHEY_SIMPLEX
+                cv2.putText(input_img, text, (ptx, pty), font, 0.75, (255, 0, 0), 2)
+               
             except:
                 pass
-    return cards, input_img
+    return input_img
