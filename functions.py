@@ -17,41 +17,42 @@ def get_cards(path):
 # Get slice of card that represents name and suit
 
 
-def get_all_templates(cards):
+def get_all_templates(cards, template_type):
     templates = []
     for card in cards:
+        
         im = cv2.imread(card)
         im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
         im = cv2.resize(im, (197, 282))
-        template_suit = im.copy()
-        template_suit = template_suit[52:85, 12:42]
-
-        template_name = im.copy()
-        template_name = template_name[12:52, 12:42]
-
         name = card.split('\\')[-1].replace('.png', '')
-        suit = name.split('_')[-1]
-        name = name.split('_')[0]
-
+        template = im.copy()
+        if template_type == 'suit':
+            template = template[52:85, 12:42]
+            name = name.split('_')[-1]
+        else:
+            template = template[12:52, 12:42]
+            name = name.split('_')[0]
+        
         templates.append({
             "name": name,
-            "suit": suit,
-            "template_name": template_name,
-            "template_suit": template_suit
+            "template": template
         })
     return pd.DataFrame(templates)
 
 
-def match_templates_to_card(test_img, all_templates):
+def match_templates_to_card(test_img, templates):
 
-    templates_suit = all_templates['template_suit'].values
-    test_img, index = calcule_template_match(test_img, templates_suit)
-    suit = all_templates['suit'].iloc[index]
+    template = templates['template'].values
+    test_img, index = calcule_template_match(test_img, template)
+    name = templates['name'].iloc[index]
 
-    templates_name = all_templates['template_name'].values
-    test_img, index = calcule_template_match(test_img, templates_name)
-    name = all_templates['name'].iloc[index]
-    return test_img, name, suit
+
+#  FAZER A MESMA COISA PARA O NOME DA CARTA 
+
+    #templates_name = all_templates['template_name'].values
+    #test_img, index = calcule_template_match(test_img, templates_name)
+    #name = all_templates['name'].iloc[index]
+    return test_img, name
 
 # apply template match function - the highest max_val represents the best match
 
@@ -82,8 +83,8 @@ def calcule_template_match(im, templates):
     return im, index
 
 
-def describe_cards(input_img, all_cards, all_templates):
-    default_size = cv2.imread(all_cards[0]).shape
+def describe_cards(input_img, cards, templates):
+    default_size = cv2.imread(cards[0][0]).shape
     def_height = default_size[0]
     def_width = default_size[1]
     pts_dst = np.array([(0, 0), (0, def_height), (def_width, def_height), (def_width, 0)]).reshape((4, 2))
@@ -100,6 +101,7 @@ def describe_cards(input_img, all_cards, all_templates):
         cnt = contours[i]
         area = cv2.contourArea(cnt)
         if area > 5000: # Filter for 
+            cv2.drawContours(input_img, [cnt], 0, (0, 255, 0), 2)
             epsilon = 0.1 * cv2.arcLength(cnt, True)
             approx = cv2.approxPolyDP(cnt, epsilon, True)
             try:
@@ -128,12 +130,14 @@ def describe_cards(input_img, all_cards, all_templates):
                 img = cv2.warpPerspective(
                     input_img, h, (def_width, def_height))
 
-                img, name, suit = match_templates_to_card(img, all_templates)
-                cv2.drawContours(input_img, [cnt], 0, (0, 255, 0), 2)
+                text = []
+                for temp in templates:
+                    img, name = match_templates_to_card(img, temp)
+                    text.append(name)
 
                 ptx = min([x1, x2, x3, x4])   # get bottom left corner position to insert result
                 pty = max([y1, y2, y3, y4])-10
-                text = '{} of {}'.format(name, suit)
+                text = ' of '.join(text)
                 font = cv2.FONT_HERSHEY_SIMPLEX
                 cv2.putText(input_img, text, (ptx, pty), font, 0.75, (255, 0, 0), 2)
                
